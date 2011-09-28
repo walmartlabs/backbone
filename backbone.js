@@ -1061,7 +1061,7 @@
     delegateEvents : function(events) {
       if (!(events || (events = this.events))) return;
       if (_.isFunction(events)) events = events.call(this);
-      $(this.el).unbind('.delegateEvents' + this.cid);
+      this.undelegateEvents();
       for (var key in events) {
         var method = this[events[key]];
         if (!method) throw new Error('Event "' + events[key] + '" does not exist');
@@ -1075,6 +1075,11 @@
           $(this.el).delegate(selector, eventName, method);
         }
       }
+    },
+
+    // Clears all callbacks previously bound to the view with `delegateEvents`.
+    undelegateEvents: function() {
+      $(this.el).unbind('.delegateEvents' + this.cid);
     },
 
     // Performs the initial configuration of a View with a set of options.
@@ -1130,7 +1135,7 @@
 
   // Override this function to change the manner in which Backbone persists
   // models to the server. You will be passed the type of request, and the
-  // model in question. By default, uses makes a RESTful Ajax request
+  // model in question. By default, makes a RESTful Ajax request
   // to the model's `url()`. Some possible customizations could be:
   //
   // * Use `setTimeout` to batch rapid-fire updates into a single request.

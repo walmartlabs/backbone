@@ -288,6 +288,7 @@
       <li>– <a href="#examples-cloudapp">CloudApp</a></li>
       <li>– <a href="#examples-seatgeek">SeatGeek</a></li>
       <li>– <a href="#examples-tpm">Talking Points Memo</a></li>
+      <li>– <a href="#examples-kicksend">Kicksend</a></li>
       <li>– <a href="#examples-shortmail">Shortmail</a></li>
       <li>– <a href="#examples-hotel-tonight">Hotel Tonight</a></li>
       <li>– <a href="#examples-salon">Salon.io</a></li>
@@ -297,6 +298,7 @@
       <li>- <a href="#examples-blossom">Blossom</a></li>
       <li>- <a href="#examples-instagreat">Insta-great!</a></li>
       <li>- <a href="#examples-decide">Decide</a></li>
+      <li>- <a href="#examples-trello">Trello</a></li>
       <li>- <a href="#examples-bittorrent">BitTorrent</a></li>
       <li>- <a href="#examples-trapit">Trapit</a></li>
       <li>- <a href="#examples-fluxiom">Fluxiom</a></li>
@@ -1451,7 +1453,7 @@ var othello = NYPL.create({
 
     <p>
       Web applications often provide linkable, bookmarkable, shareable URLs for
-      imporant locations in the app. Until recently, hash fragments 
+      important locations in the app. Until recently, hash fragments 
       (<tt>#page</tt>) were used to provide these permalinks, but with the 
       arrival of the History API, it's now possible to use standard URLs (<tt>/page</tt>).
       <b>Backbone.Router</b> provides methods for routing client-side pages, and
@@ -1639,6 +1641,12 @@ app.navigate("help/troubleshooting", true);
     <p>
       If the server has already rendered the entire page, and you don't want the
       initial route to trigger when starting History, pass <tt>silent: true</tt>.
+    </p>
+    
+    <p>
+      Because hash-based history in Internet Explorer relies on an 
+      <tt>&lt;iframe&gt;</tt>, be sure to only call <tt>start()</tt> after the DOM
+      is ready.
     </p>
 
 <pre>
@@ -2234,6 +2242,21 @@ var model = localBackbone.Model.extend(...);
       </a>
     </div>
     
+    <h2 id="examples-kicksend">Kicksend</h2>
+    
+    <p>
+      <a href="http://kicksend.com">Kicksend</a> is a real-time file sharing 
+      platform that helps everyday people send and receive files of any size 
+      with their friends and family. Kicksend's web application makes extensive 
+      use of Backbone.js to model files, friends, lists and activity streams.
+    </p>
+
+    <div style="text-align: center;">
+      <a href="http://kicksend.com">
+        <img src="docs/images/kicksend.png" alt="Kicksend" class="example_image" />
+      </a>
+    </div>
+    
     <h2 id="examples-shortmail">Shortmail</h2>
     
     <p>
@@ -2395,6 +2418,23 @@ var model = localBackbone.Model.extend(...);
     <div style="text-align: center;">
       <a href="http://decide.com">
         <img src="docs/images/decide.png" alt="Decide" class="example_image" />
+      </a>
+    </div>
+    
+    <h2 id="examples-trello">Trello</h2>
+    
+    <p>
+      <a href="http://trello.com">Trello</a> is a collaboration tool that 
+      organizes your projects into boards. A Trello board holds many lists of 
+      cards, which can contain checklists, files and conversations, and may be
+      voted on and organized with labels. Updates on the board happen in 
+      real time. The site was built ground up using Backbone.js for all the 
+      models, views, and routes.
+    </p>
+
+    <div style="text-align: center;">
+      <a href="http://trello.com">
+        <img src="docs/images/trello.png" alt="Trello" class="example_image" />
       </a>
     </div>
     

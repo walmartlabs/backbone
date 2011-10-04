@@ -898,6 +898,7 @@
           if (history._ignoreChange) {
             history._ignoreChange = false;
             history._directionIndex  = history.loadIndex();
+            history._pendingNavigate && setTimeout(history._pendingNavigate, 0);
             return true;
           }
 
@@ -928,6 +929,12 @@
     // URL-encoding the fragment in advance. This does not trigger
     // a `hashchange` event.
     navigate : function(fragment, triggerRoute, replace, forceIndex) {
+      // If we are waiting for a back/forward operation do not execute just yet
+      if (this._ignoreChange) {
+        this._pendingNavigate = _.bind(this.navigate, this, fragment, triggerRoute, replace, forceIndex);
+        return;
+      }
+
       var frag = (fragment || '').replace(hashStrip, '');
       var loc = window.location;
       if (this.fragment == frag || this.fragment == decodeURIComponent(frag)) return;

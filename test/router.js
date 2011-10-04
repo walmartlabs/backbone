@@ -263,9 +263,7 @@ $(document).ready(function() {
 
       setTimeout(function() {
         Backbone.history.go(-2, false);
-        setTimeout(function() {
-          Backbone.history.navigate('search/manhattan/p70', true);
-        }, 1000);
+        Backbone.history.navigate('search/manhattan/p70', true);
       }, 0);
     }
 

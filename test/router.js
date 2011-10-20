@@ -9,6 +9,7 @@ $(document).ready(function() {
       "search/:query/p:page":       "search",
       "splat/*args/end":            "splat",
       "*first/complex-:part/*rest": "complex",
+      ":entity/?":                  "mappedQuery",
       ":entity?*args":              "query",
       "*anything":                  "anything"
     },
@@ -35,6 +36,11 @@ $(document).ready(function() {
     query : function(entity, args) {
       this.entity    = entity;
       this.queryArgs = args;
+    },
+
+    mappedQuery : function(entity, args) {
+      this.entity          = entity;
+      this.mappedQueryArgs = args;
     },
 
     anything : function(whatever) {
@@ -107,6 +113,16 @@ $(document).ready(function() {
     Backbone.history.navigate('search/nyc/p10', true);
   });
 
+  asyncTest("Router: routes (encoded reserved char)", 2, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.query, 'nyc');
+      equals(router.page, 'a/b');
+      start();
+    });
+
+    Backbone.history.navigate('search/nyc/pa%2Fb', true);
+  });
+
   asyncTest("Router: routes via navigate", 6, function() {
     var originalHistory = window.history.length,
         startingIndex = Backbone.history.getIndex();
@@ -175,6 +191,24 @@ $(document).ready(function() {
     });
 
     Backbone.history.navigate('mandel?a=b&c=d', true);
+  });
+
+  asyncTest("Router: routes (mappedQuery)", 3, function() {
+    window.location.hash = 'mandel/?a=b&escaped=%2F%3D';
+    setTimeout(function() {
+      equals(router.entity, 'mandel');
+      equals(router.mappedQueryArgs['a'], 'b');
+      equals(router.mappedQueryArgs['escaped'], '/=');
+      start();
+    }, 10);
+  });
+
+  asyncTest("Router: routes (mappedQuery - no '?')", 1, function() {
+    window.location.hash = 'mandel/a=b';
+    setTimeout(function() {
+      equals(router.mappedQueryArgs['a'], 'b');
+      start();
+    }, 10);
   });
 
   asyncTest("Router: routes (anything)", 3, function() {

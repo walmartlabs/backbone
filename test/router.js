@@ -194,21 +194,30 @@ $(document).ready(function() {
   });
 
   asyncTest("Router: routes (mappedQuery)", 3, function() {
-    window.location.hash = 'mandel/?a=b&escaped=%2F%3D';
-    setTimeout(function() {
+    routeBind(function(fragment, delta) {
       equals(router.entity, 'mandel');
       equals(router.mappedQueryArgs['a'], 'b');
       equals(router.mappedQueryArgs['escaped'], '/=');
       start();
-    }, 10);
+    });
+    Backbone.history.navigate('mandel/?a=b&escaped=%2F%3D', true);
   });
 
   asyncTest("Router: routes (mappedQuery - no '?')", 1, function() {
-    window.location.hash = 'mandel/a=b';
-    setTimeout(function() {
+    routeBind(function(fragment, delta) {
       equals(router.mappedQueryArgs['a'], 'b');
       start();
-    }, 10);
+    });
+    Backbone.history.navigate('mandel/a=b', true);
+  });
+
+  asyncTest("Router: routes (mappedQuery - no '/')", 1, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.mappedQueryArgs['a'], 'b');
+      start();
+    });
+
+    Backbone.history.navigate('mandel?a=b', true);
   });
 
   asyncTest("Router: routes (anything)", 3, function() {

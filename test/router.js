@@ -9,7 +9,6 @@ $(document).ready(function() {
       "search/:query/p:page":       "search",
       "splat/*args/end":            "splat",
       "*first/complex-:part/*rest": "complex",
-      ":entity/?":                  "mappedQuery",
       ":entity?*args":              "query",
       "*anything":                  "anything"
     },
@@ -18,33 +17,33 @@ $(document).ready(function() {
       this.testing = options.testing;
     },
 
-    search : function(query, page) {
+    search : function(query, page, queryParams) {
       this.query = query;
       this.page = page;
+      this.queryParams = queryParams;
     },
 
-    splat : function(args) {
+    splat : function(args, queryParams) {
       this.args = args;
+      this.queryParams = queryParams;
     },
 
-    complex : function(first, part, rest) {
+    complex : function(first, part, rest, queryParams) {
       this.first = first;
       this.part = part;
       this.rest = rest;
+      this.queryParams = queryParams;
     },
 
-    query : function(entity, args) {
+    query : function(entity, args, queryParams) {
       this.entity    = entity;
       this.queryArgs = args;
+      this.queryParams = queryParams;
     },
 
-    mappedQuery : function(entity, args) {
-      this.entity          = entity;
-      this.mappedQueryArgs = args;
-    },
-
-    anything : function(whatever) {
+    anything : function(whatever, queryParams) {
       this.anything = whatever;
+      this.queryParams = queryParams;
     }
 
   });
@@ -113,7 +112,7 @@ $(document).ready(function() {
     Backbone.history.navigate('search/nyc/p10', true);
   });
 
-  asyncTest("Router: routes (encoded reserved char)", 2, function() {
+  asyncTest("Router: routes (two part - encoded reserved char)", 2, function() {
     routeBind(function(fragment, delta) {
       equals(router.query, 'nyc');
       equals(router.page, 'a/b');
@@ -121,6 +120,40 @@ $(document).ready(function() {
     });
 
     Backbone.history.navigate('search/nyc/pa%2Fb', true);
+  });
+
+  asyncTest("Router: routes (two part - query params)", 3, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.query, 'nyc');
+      equals(router.page, '10');
+      equals(router.queryParams.a, 'b');
+      start();
+    });
+
+    Backbone.history.navigate('search/nyc/p10?a=b', true);
+  });
+
+  asyncTest("Router: routes (two part - query params - hash)", 16, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.query, 'nyc');
+      equals(router.page, '10');
+      equals(router.queryParams.a, 'b');
+      equals(router.queryParams.b.c, 'd');
+      equals(router.queryParams.b.d, 'e');
+      equals(router.queryParams.b.e.f, 'g');
+      equals(router.queryParams.array1.length, 1);
+      equals(router.queryParams.array1[0], 'a');
+      equals(router.queryParams.array2.length, 2);
+      equals(router.queryParams.array2[0], 'a');
+      equals(router.queryParams.array2[1], 'b');
+      equals(router.queryParams.array3.length, 2);
+      equals(router.queryParams.array3[0], 'c');
+      equals(router.queryParams.array3[1], 'd');
+      equals(router.queryParams.array4.length, 1);
+      equals(router.queryParams.array4[0], 'e|');
+      start();
+    });
+    Backbone.history.navigate('search/nyc/p10?a=b&b.c=d&b.d=e&b.e.f=g&array1=|a&array2=a|b&array3=|c|d&array4=|e%7C', true);
   });
 
   asyncTest("Router: routes via navigate", 6, function() {
@@ -168,6 +201,15 @@ $(document).ready(function() {
     Backbone.history.navigate('splat/long-list/of/splatted_99args/end', true);
   });
 
+  asyncTest("Router: routes (splats - query params)", 2, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.args, 'long-list/of/splatted_99args');
+      equals(router.queryParams.c, 'd');
+      start();
+    });
+    Backbone.history.navigate('splat/long-list/of/splatted_99args/end?c=d', true);
+  });
+
   asyncTest("Router: routes (complex)", 5, function() {
     routeBind(function(fragment, delta) {
       equals(fragment, 'one/two/three/complex-part/four/five/six/seven');
@@ -181,6 +223,18 @@ $(document).ready(function() {
     Backbone.history.navigate('one/two/three/complex-part/four/five/six/seven', true);
   });
 
+  asyncTest("Router: routes (complex - query params)", 4, function() {
+    routeBind(function(fragment, delta) {
+      equals(router.first, 'one/two/three');
+      equals(router.part, 'part');
+      equals(router.rest, 'four/five/six/seven');
+      equals(router.queryParams.e, 'f');
+      start();
+    });
+
+    Backbone.history.navigate('one/two/three/complex-part/four/five/six/seven?e=f', true);
+  });
+
   asyncTest("Router: routes (query)", 4, function() {
     routeBind(function(fragment, delta) {
       equals(fragment, 'mandel?a=b&c=d');
@@ -191,33 +245,6 @@ $(document).ready(function() {
     });
 
     Backbone.history.navigate('mandel?a=b&c=d', true);
-  });
-
-  asyncTest("Router: routes (mappedQuery)", 3, function() {
-    routeBind(function(fragment, delta) {
-      equals(router.entity, 'mandel');
-      equals(router.mappedQueryArgs['a'], 'b');
-      equals(router.mappedQueryArgs['escaped'], '/=');
-      start();
-    });
-    Backbone.history.navigate('mandel/?a=b&escaped=%2F%3D', true);
-  });
-
-  asyncTest("Router: routes (mappedQuery - no '?')", 1, function() {
-    routeBind(function(fragment, delta) {
-      equals(router.mappedQueryArgs['a'], 'b');
-      start();
-    });
-    Backbone.history.navigate('mandel/a=b', true);
-  });
-
-  asyncTest("Router: routes (mappedQuery - no '/')", 1, function() {
-    routeBind(function(fragment, delta) {
-      equals(router.mappedQueryArgs['a'], 'b');
-      start();
-    });
-
-    Backbone.history.navigate('mandel?a=b', true);
   });
 
   asyncTest("Router: routes (anything)", 3, function() {

@@ -664,7 +664,7 @@
 
   // Cached regular expressions for matching named param parts and splatted
   // parts of route strings.
-  var queryStringParam = /\?$/;
+  var queryStringParam = /^\?(.*)/;
   var namedParam    = /:([\w\d]+)/g;
   var splatParam    = /\*([\w\d]+)/g;
   var escapeRegExp  = /[-[\]{}()+?.,\\^$|#\s]/g;
@@ -714,51 +714,76 @@
     // Convert a route string into a regular expression, suitable for matching
     // against the current location hash.
     _routeToRegExp : function(route) {
-      var hasQueryString = false;
-      if (route.match(queryStringParam)) {
-        // make a query string syntax look like a wildcard syntax
-        route = route.replace(queryStringParam, '*queryString');
-        hasQueryString = true;
-      }
-
       route = route.replace(escapeRegExp, "\\$&")
                    .replace(namedParam, "([^\/?]*)")
-                   .replace(splatParam, "(.*?)");
-      var rtn = new RegExp('^' + route + '$');
-
-      if (hasQueryString) {
-        // keep note that this route is a query string syntax
-        if (!this.queryStringRoutes) this.queryStringRoutes = {};
-        this.queryStringRoutes[rtn] = true;
-      }
-      return rtn;
+                   .replace(splatParam, "([^\?]*?)");
+      route += '([\?]{1}.*)?';
+      return new RegExp('^' + route + '$');
     },
 
     // Given a route, and a URL fragment that it matches, return the array of
     // extracted parameters.
     _extractParameters : function(route, fragment) {
-      var rtn = route.exec(fragment);
-      if (this.queryStringRoutes && this.queryStringRoutes[route]) {
-        // take the last parameter and extract query string data
-        var queryString = rtn[rtn.length-1].replace(/^\?/, '');
+      var params = route.exec(fragment).slice(1);
+
+      // do we have an additional query string?
+      var match = params.length && params[params.length-1] && params[params.length-1].match(queryStringParam);
+      if (match) {
+    	  var queryString = match[1];
         var data = {};
         if (queryString) {
           var keyValues = queryString.split('&');
+          var self = this;
           _.each(keyValues, function(keyValue) {
             var arr = keyValue.split('=');
             if (arr.length > 1 && arr[1]) {
-              data[arr[0]] = decodeURIComponent(arr[1]);
+              self._setParamValue(arr[0], arr[1], data);
             }
           });
         }
-        rtn[rtn.length-1] = data;
+        params[params.length-1] = data;
       }
-      for (var i=1; i<rtn.length; i++) {
-        if (_.isString(rtn[i])) {
-          rtn[i] = decodeURIComponent(rtn[i]);
+
+      // decode params
+      for (var i=1; i<params.length; i++) {
+        if (_.isString(params[i])) {
+          params[i] = decodeURIComponent(params[i]);
         }
       }
-      return rtn.slice(1);
+
+      return params;
+    },
+
+    _setParamValue : function(key, value, data) {
+      // use '.' to define hash separators
+      var parts = key.split('.');
+      var _data = data;
+      for (var i=0; i<parts.length; i++) {
+        var part = parts[i];
+        if (i === parts.length-1) {
+          // set the value
+          _data[part] = this._decodeParamValue(value);
+        } else {
+          _data = _data[part] = _data[part] || {};
+        }
+      }
+    },
+
+    _decodeParamValue : function(value) {
+      // '|' will indicate an array.  Array with 1 value is a=|b - multiple values can be a=b|c
+      if (value.indexOf('|') >= 0) {
+        var values = value.split('|');
+        // clean it up
+        for (var i=values.length-1; i>=0; i--) {
+          if (!values[i]) {
+            values.splice(i, 1);
+          } else {
+            values[i] = decodeURIComponent(values[i])
+          }
+        }
+        return values;
+      }
+      return decodeURIComponent(value);
     }
 
   });

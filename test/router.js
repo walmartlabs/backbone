@@ -5,6 +5,7 @@ $(document).ready(function() {
   var Router = Backbone.Router.extend({
 
     routes: {
+      "noCallback":                 "noCallback",
       "search/:query":              "search",
       "search/:query/p:page":       "search",
       "splat/*args/end":            "splat",
@@ -45,6 +46,8 @@ $(document).ready(function() {
       this.anything = whatever;
       this.queryParams = queryParams;
     }
+
+    // do not provide a callback method for the noCallback route
 
   });
 
@@ -370,6 +373,22 @@ $(document).ready(function() {
     setTimeout(function() {
       Backbone.history.navigate('search/manhattan/p20', true);
     }, 0);
+  });
+
+  asyncTest("Router: fires event when router doesn't have callback on it", 1, function() {
+    try{
+      var callbackFired = false;
+      var myCallback = function(){ callbackFired = true; }
+      router.bind("route:noCallback", myCallback);
+      window.location.hash = "noCallback";
+      setTimeout(function(){
+        equals(callbackFired, true);
+        start();
+        window.location.hash = '';
+      }, 10);
+    } catch (err) {
+      ok(false, "an exception was thrown trying to fire the router event with no router handler callback");
+    }
   });
 
 });

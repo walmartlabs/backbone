@@ -753,7 +753,7 @@
       }
 
       // decode params
-      for (var i=1; i<params.length; i++) {
+      for (var i=0; i<params.length; i++) {
         if (_.isString(params[i])) {
           params[i] = decodeURIComponent(params[i]);
         }
